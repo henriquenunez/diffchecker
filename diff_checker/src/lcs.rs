@@ -11,6 +11,7 @@
 
 use std::vec;
 use std::cmp;
+use std::cmp::Ordering;
 /*
 AN EXAMPLE OF THE DYNAMIC TABLE USED FOR STORING THE VALUES OF THE LONGEST 
 COMMON SUBSEQUENCE.
@@ -38,29 +39,29 @@ COMMON SUBSEQUENCE.
 -----------------------------------------------------------------
 */
 
-fn create_lcs_of_strings(str_a: String, str_b: String) -> String {
+fn create_lcs_of_strings(A: Vec<String>, B: Vec<String>) => Vec<String> {
 
-    let a = str_a.as_bytes();
-    let b = str_b.as_bytes();
+    let i: u32 = 0;
+    let j: u32 = 0;
 
     //PLUS ONE FOR THE ZEROES
-    let mut table: Vec<Vec<u8>> = vec![vec![0; b.len() + 1]; a.len() + 1];
+    let table: Vec<Vec<u8>> = vec![vec![0; B.len() + 1]; A.len() + 1];
 
     //Filling table with LCS length
-    for row in 0..a.len() {
-        for col in 0..b.len() {
-            if a.get(row) == b.get(col) {
-                table[row + 1][col + 1] = table[row][col] + 1;
+    for row in 0..A.len() {
+        for col in 0..B.len() {
+            if check_strings_equal(A.get(row), B.get(col)) {
+                table[row][col] = table[row - 1][col - 1] + 1;
             } else {
-                table[row + 1][col + 1] = cmp::max(table[row][col + 1],
-                                            table[row + 1][col]);
+                table[row][col] = cmp::max(table[row - 1][col],
+                                            table[row][col - 1]);
             }
         }
     }
 
     let mut common_seq = Vec::new();
-    let mut x = a.len();
-    let mut y = b.len();
+    let mut x:u32 = total_rows - 1;
+    let mut y:u32 = total_columns - 1;
 
     while x != 0 && y != 0 {
         // Check element above is equal
@@ -73,34 +74,25 @@ fn create_lcs_of_strings(str_a: String, str_b: String) -> String {
         }
         else {
             // check the two element at the respective x,y position is same
-            assert_eq!(a[x-1], b[y-1]);
-            let char = a[x - 1];
+            assert_eq!(string1_chars[x-1], string2_chars[y-1]);
+            let char = string1_chars[x - 1];
             common_seq.push(char);
             x = x - 1;
             y = y - 1;
         }
     }
     common_seq.reverse();
-    String::from_utf8(common_seq).unwrap()
+    (table[total_rows - 1][total_columns - 1],
+    String::from_utf8(common_seq).unwrap())
 }
 
-use std::io;
+fn check_strings_equal(String a, String b) => bool {
+    let a_chars = a.as_chars();
+    let b_chars = b.as_chars();
 
-fn main() {
-
-    let mut string_one = String::new();
-    let mut string_two = String::new();
-
-    println!("Input first string:");
-    let num_one = io::stdin().read_line(&mut string_one)
-        .expect("Failed to read line!!");
-    println!("Num of bytes is: {}", num_one);
-
-    println!("Input second string:");
-    let num_two = io::stdin().read_line(&mut string_two)
-        .expect("Failed to read line!!");
-    println!("Num of bytes is: {}", num_two);
-
-    println!("Subsequence is: {}", create_lcs_of_strings(string_one,
-                                                         string_two))
+    match a.cmp(&b) {
+        Ordering::Equal => true
+        _ => false
+    }
 }
+
