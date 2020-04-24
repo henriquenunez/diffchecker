@@ -11,56 +11,57 @@
 
 use std::vec;
 use std::cmp;
-/*
-AN EXAMPLE OF THE DYNAMIC TABLE USED FOR STORING THE VALUES OF THE LONGEST 
-COMMON SUBSEQUENCE.
+use std::cmp::Ordering;
 
------------------------------------------------------------------
-|       |       |       |       |       |       |       |       |
-|   0   |   0   |   0   |   0   |   0   |   0   |   0   |   0   |
-|       |       |       |       |       |       |       |       |
-|       |       |       |       |       |       |       |       |
------------------------------------------------------------------
-|       |       |       |       |       |       |       |       |
-|   0   |   1   |   1   |   1   |       |       |       |       |
-|       |   <   |   <   |   <   |       |       |       |       |
-|       |       |       |       |       |       |       |       |
------------------------------------------------------------------
-|       |       |       |       |       |       |       |       |
-|   0   |       |       |   2   |   2   |   2   |   2   |   2   |
-|       |       |       |       |   <   |   <   |   <   |   <   |
-|       |       |       |       |       |       |       |       |
------------------------------------------------------------------
-|       |       |       |       |       |       |       |       |
-|   0   |       |       |       |       |       |   2^  |   3   |
-|       |       |       |       |       |       |       |       |
-|       |       |       |       |       |       |       |       |
------------------------------------------------------------------
+/*
+AN EXAMPLE OF THE DYNAMIC TABLE USED FOR STORING THE VALUES OF THE LONGEST
+COMMON SUBSEQUENCE.
+        0       A       B       C       D       E       F       G
+    -----------------------------------------------------------------
+    |       |       |       |       |       |       |       |       |
+ 0  |   0   |   0   |   0   |   0   |   0   |   0   |   0   |   0   |
+    |       |       |       |       |       |       |       |       |
+    |       |       |       |       |       |       |       |       |
+    -----------------------------------------------------------------
+    |       | \     |       |       |       |       |       |       |
+ A  |   0   |   1   |   1   |   1   |   1   |   1   |   1   |   1   |
+    |       |   <   |   <   |   <   |   <   |   <   |   <   |   <   |
+    |       |       |       |       |       |       |       |       |
+    -----------------------------------------------------------------
+    |       |       |       |       | \     |       |       |       |
+ D  |   0   |   1   |       |       |   2   |   2   |   2   |   2   |
+    |       |   ^   |       |       |       |   <   |   <   |   <   |
+    |       |       |       |       |       |       |       |       |
+    -----------------------------------------------------------------
+    |       |       |       |       |       |       |       |       |
+ H  |   0   |   1   |   1   |   1   |   1   |   1   |   2^  |   3   |
+    |       |   ^   |   <   |   <   |   <   |   <   |       |       |
+    |       |       |       |       |       |       |       |       |
+    -----------------------------------------------------------------
 */
 
-fn create_lcs_of_strings(str_a: String, str_b: String) -> String {
-
-    let a = str_a.as_bytes();
-    let b = str_b.as_bytes();
+fn create_lcs_of_strings(text_a: Vec<&str>,
+                         text_b: Vec<&str>) -> Vec<String> {
 
     //PLUS ONE FOR THE ZEROES
-    let mut table: Vec<Vec<u8>> = vec![vec![0; b.len() + 1]; a.len() + 1];
+    let mut table: Vec<Vec<u8>> =
+                        vec![vec![0; text_b.len() + 1]; text_a.len() + 1];
 
     //Filling table with LCS length
-    for row in 0..a.len() {
-        for col in 0..b.len() {
-            if a.get(row) == b.get(col) {
-                table[row + 1][col + 1] = table[row][col] + 1;
-            } else {
-                table[row + 1][col + 1] = cmp::max(table[row][col + 1],
-                                            table[row + 1][col]);
-            }
+    for (i_row, &row) in text_a.iter().enumerate() {
+        for (i_col, &col) in text_b.iter().enumerate() {
+            table[i_row + 1][i_col + 1] =
+                match row.cmp(&col) {
+                    Ordering::Equal => table[i_row][i_col] + 1,
+                    _ => cmp::max(table[i_row + 1][i_col],
+                                  table[i_row][i_col + 1]),
+                };
         }
     }
 
     let mut common_seq = Vec::new();
-    let mut x = a.len();
-    let mut y = b.len();
+    let mut x = text_a.len();
+    let mut y = text_b.len();
 
     while x != 0 && y != 0 {
         // Check element above is equal
@@ -73,34 +74,29 @@ fn create_lcs_of_strings(str_a: String, str_b: String) -> String {
         }
         else {
             // check the two element at the respective x,y position is same
-            assert_eq!(a[x-1], b[y-1]);
-            let char = a[x - 1];
-            common_seq.push(char);
+            //I dont know how to assert it yet
+            assert_eq!(text_a[x-1], text_b[y-1]);
+            let this_str = String::from(text_a[x - 1]);
+            common_seq.push(this_str);
             x = x - 1;
             y = y - 1;
         }
     }
     common_seq.reverse();
-    String::from_utf8(common_seq).unwrap()
+    common_seq
+    //String::from_utf8(common_seq).unwrap()
 }
 
 use std::io;
 
 fn main() {
 
-    let mut string_one = String::new();
-    let mut string_two = String::new();
+    let string_one = vec!["aa", "bb", "cc", "cc", "cc"];//String::new();
+    let string_two = vec!["aa",       "cc", "cc", "cc"];//String::new();
 
-    println!("Input first string:");
-    let num_one = io::stdin().read_line(&mut string_one)
-        .expect("Failed to read line!!");
-    println!("Num of bytes is: {}", num_one);
+    let owo = create_lcs_of_strings(string_one, string_two);
+    for grr in owo.iter() {
+        println!("Part: {}", grr);
+    }
 
-    println!("Input second string:");
-    let num_two = io::stdin().read_line(&mut string_two)
-        .expect("Failed to read line!!");
-    println!("Num of bytes is: {}", num_two);
-
-    println!("Subsequence is: {}", create_lcs_of_strings(string_one,
-                                                         string_two))
 }
