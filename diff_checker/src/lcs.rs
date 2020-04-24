@@ -9,83 +9,90 @@
     String and enum
 */
 
+use std::vec;
+use std::cmp;
+use std::cmp::Ordering;
 /*
-AN EXAMPLE OF THE DYNAMIC TABLE USED FOR STORING THE VALUES OF THE LONGEST
+AN EXAMPLE OF THE DYNAMIC TABLE USED FOR STORING THE VALUES OF THE LONGEST 
 COMMON SUBSEQUENCE.
-        0       A       B       C       D       E       F       G
-    -----------------------------------------------------------------
-    |       |       |       |       |       |       |       |       |
- 0  |   0   |   0   |   0   |   0   |   0   |   0   |   0   |   0   |
-    |       |       |       |       |       |       |       |       |
-    |       |       |       |       |       |       |       |       |
-    -----------------------------------------------------------------
-    |       | \     |       |       |       |       |       |       |
- A  |   0   |   1   |   1   |   1   |   1   |   1   |   1   |   1   |
-    |       |   <   |   <   |   <   |   <   |   <   |   <   |   <   |
-    |       |       |       |       |       |       |       |       |
-    -----------------------------------------------------------------
-    |       |       |       |       | \     |       |       |       |
- D  |   0   |   1   |       |       |   2   |   2   |   2   |   2   |
-    |       |   ^   |       |       |       |   <   |   <   |   <   |
-    |       |       |       |       |       |       |       |       |
-    -----------------------------------------------------------------
-    |       |       |       |       |       |       |       |       |
- H  |   0   |   1   |   1   |   1   |   1   |   1   |   2^  |   3   |
-    |       |   ^   |   <   |   <   |   <   |   <   |       |       |
-    |       |       |       |       |       |       |       |       |
-    -----------------------------------------------------------------
+
+-----------------------------------------------------------------
+|       |       |       |       |       |       |       |       |
+|   0   |   0   |   0   |   0   |   0   |   0   |   0   |   0   |
+|       |       |       |       |       |       |       |       |
+|       |       |       |       |       |       |       |       |
+-----------------------------------------------------------------
+|       |       |       |       |       |       |       |       |
+|   0   |   1   |   1   |   1   |       |       |       |       |
+|       |   <   |   <   |   <   |       |       |       |       |
+|       |       |       |       |       |       |       |       |
+-----------------------------------------------------------------
+|       |       |       |       |       |       |       |       |
+|   0   |       |       |   2   |   2   |   2   |   2   |   2   |
+|       |       |       |       |   <   |   <   |   <   |   <   |
+|       |       |       |       |       |       |       |       |
+-----------------------------------------------------------------
+|       |       |       |       |       |       |       |       |
+|   0   |       |       |       |       |       |   2^  |   3   |
+|       |       |       |       |       |       |       |       |
+|       |       |       |       |       |       |       |       |
+-----------------------------------------------------------------
 */
 
-pub use ::std::vec;
-pub use ::std::cmp;
-pub use ::std::cmp::Ordering;
+fn create_lcs_of_strings(A: Vec<String>, B: Vec<String>) => Vec<String> {
 
-//mod lcs {
+    let i: u32 = 0;
+    let j: u32 = 0;
 
-    pub fn create_lcs_of_strings(text_a: Vec<&str>,
-                             text_b: Vec<&str>) -> Vec<String> {
+    //PLUS ONE FOR THE ZEROES
+    let table: Vec<Vec<u8>> = vec![vec![0; B.len() + 1]; A.len() + 1];
 
-        //PLUS ONE FOR THE ZEROES
-        let mut table: Vec<Vec<u8>> =
-                            vec![vec![0; text_b.len() + 1]; text_a.len() + 1];
-
-        //Filling table with LCS length
-        for (i_row, &row) in text_a.iter().enumerate() {
-            for (i_col, &col) in text_b.iter().enumerate() {
-                table[i_row + 1][i_col + 1] =
-                    match row.cmp(&col) {
-                        ::std::cmp::Ordering::Equal => table[i_row][i_col] + 1,
-                        _ => ::std::cmp::max(table[i_row + 1][i_col],
-                                      table[i_row][i_col + 1]),
-                    };
+    //Filling table with LCS length
+    for row in 0..A.len() {
+        for col in 0..B.len() {
+            if check_strings_equal(A.get(row), B.get(col)) {
+                table[row][col] = table[row - 1][col - 1] + 1;
+            } else {
+                table[row][col] = cmp::max(table[row - 1][col],
+                                            table[row][col - 1]);
             }
         }
-
-        let mut common_seq = Vec::new();
-        let mut x = text_a.len();
-        let mut y = text_b.len();
-
-        while x != 0 && y != 0 {
-            // Check element above is equal
-            if table[x][y] == table[x - 1][y] {
-                x = x - 1;
-            }
-            // check element to the left is equal
-            else if table[x][y] == table[x][y - 1] {
-                y = y - 1;
-            }
-            else {
-                // check the two element at the respective x,y position is same
-                //I dont know how to assert it yet
-                assert_eq!(text_a[x-1], text_b[y-1]);
-                let this_str = String::from(text_a[x - 1]);
-                common_seq.push(this_str);
-                x = x - 1;
-                y = y - 1;
-            }
-        }
-        common_seq.reverse();
-        common_seq
-        //String::from_utf8(common_seq).unwrap()
     }
-//}
+
+    let mut common_seq = Vec::new();
+    let mut x:u32 = total_rows - 1;
+    let mut y:u32 = total_columns - 1;
+
+    while x != 0 && y != 0 {
+        // Check element above is equal
+        if table[x][y] == table[x - 1][y] {
+            x = x - 1;
+        }
+        // check element to the left is equal
+        else if table[x][y] == table[x][y - 1] {
+            y = y - 1;
+        }
+        else {
+            // check the two element at the respective x,y position is same
+            assert_eq!(string1_chars[x-1], string2_chars[y-1]);
+            let char = string1_chars[x - 1];
+            common_seq.push(char);
+            x = x - 1;
+            y = y - 1;
+        }
+    }
+    common_seq.reverse();
+    (table[total_rows - 1][total_columns - 1],
+    String::from_utf8(common_seq).unwrap())
+}
+
+fn check_strings_equal(String a, String b) => bool {
+    let a_chars = a.as_chars();
+    let b_chars = b.as_chars();
+
+    match a.cmp(&b) {
+        Ordering::Equal => true
+        _ => false
+    }
+}
+
